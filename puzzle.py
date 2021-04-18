@@ -5,7 +5,25 @@ import pysat
 from pysat import solvers
 
 
+
 def read_board(input_file):
+    '''
+    Reads board from file and transform it into
+    list of tuples `(id, value)` where `id` is an index of the cell starting from 1.
+    If cell has no associated number with itself it's value will be set to 0.
+
+    Returns: list of tuples shaped `(id, value)`.
+
+    Examples:
+
+        >>> cat input_file.txt
+            1 . .
+            6 5 4
+            7 . .
+
+        >>> read_board('input_file.txt')
+            [(1, 1), (2, 0), (3, 0), (4, 6), (5, 5), (6, 4), (7, 7), (8, 0), (9, 0)]
+    '''
     with open(input_file, 'r') as file:
         values = []
         rows = file.read()
@@ -23,13 +41,22 @@ def read_board(input_file):
 
 class Puzzle:
     def __init__(self, board):
+        '''
+        Creates numbrix puzzle solver associated with given `board`.
+        Board should be a square - square root of it's length should be natural number.
+        Valid board's sizes: 1, 4, 9, 16...
+
+        Args:
+
+            board (list((int, int))): List of cells' tuples
+
+        '''
         n = len(board)
         
         self.board = board
         self.rows = round(math.sqrt(n))
         self.n = n
         self.all_possible_values = range(1, self.n + 1)
-        self.solver = solvers.Glucose3(with_proof=True)
 
     def decode_cell(self, encoded_cell):
         encoded_cell_abs = abs(encoded_cell)
@@ -38,6 +65,33 @@ class Puzzle:
         return id, value
 
     def encode_cell(self, id, value):
+        '''
+        every cell and value associated with it can be represented by a range of numbers
+        for example:
+        if cell with index (id) 1 is filled with number 1
+        we encode that into 1, because: (1 - 1) * n + 1
+        if cell with index (id) 1 is filled with number 2
+        we encode that into 2, because: (1 - 1) * n + 2
+        and so on - so cell with index 1 can be encoded into values from 1 to n,
+        cell with index 2 can be encoded into valuses from n + 1 to 2n,
+        cell with index 3 can be encoded into valuses from 2n + 1 to 3n...
+
+        Args:
+
+            id: (int): id (1-based index) of the cell
+
+            value: (int): value assigned to the cell. Value should never be grater than length of the board passed to constructor (`self.n`)
+
+        Examples:
+
+            >>> board = [(1, 0), ...] # board of length 81
+            >>> puzzle = Puzzle(board)
+            >>> puzzle.encode_cell(1, 1)
+                1
+            >>> puzzle.encode_cell(9, 42) # means that cell with index 9 has value 42
+                690
+                
+        '''
         return (id - 1) * self.n + value
 
     def cell_is_equal_to(self, id, value):
@@ -115,21 +169,22 @@ class Puzzle:
 
 
     def solve(self):
+        solver = solvers.Glucose3()
         for id in self.all_possible_values:
             clause = self.cell_has_assigned_value(id);
-            self.solver.add_clause(clause)
+            solver.add_clause(clause)
         for id in self.all_possible_values:
             for clause in self.cell_is_unique(id):
-                self.solver.add_clause(clause)
+                solver.add_clause(clause)
 
         for id1, id2 in itertools.product(self.all_possible_values, self.all_possible_values):
             if id1 != id2:
                 for clause in self.cells_are_not_equal(id1, id2):
-                    self.solver.add_clause(clause)
+                    solver.add_clause(clause)
         for id in self.all_possible_values:
             neighbors = self.get_neighbors_ids(id)
             for clause in self.cells_neighbor_has_proceding_value(id, neighbors):
-                self.solver.add_clause(clause)
+                solver.add_clause(clause)
 
         assumptions = []
         for id in self.all_possible_values:
@@ -137,9 +192,9 @@ class Puzzle:
             if cell_value != 0:
                 assumptions.append(self.encode_cell(id, cell_value))
         
-        print('Solvable?', self.solver.solve(assumptions))
-        model = self.solver.get_model()
-        self.solver.delete()
+        print('Solvable?', solver.solve(assumptions))
+        model = solver.get_model()
+        solver.delete()
 
         result = []
         for encoded_cell_value in model:
