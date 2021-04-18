@@ -1,7 +1,5 @@
 import os
-import itertools
 import math
-import pysat
 from pysat import solvers
 
 
@@ -97,7 +95,7 @@ class Puzzle:
     def cell_is_equal_to(self, id, value):
         return [self.encode_cell(id, value)]
 
-    def cell_has_assigned_value(self, id):
+    def cell_is_not_empty(self, id):
         return [self.encode_cell(id, value) for value in self.all_possible_values]
 
     def get_cell_value(self, id):
@@ -130,7 +128,7 @@ class Puzzle:
 
         return cnf
 
-    def cells_neighbor_has_proceding_value(self, id, neighbors):
+    def cell_neighbor_has_proceding_value(self, id, neighbors):
         cnf = []
         for value in range(1, self.n):
             clause = [-self.encode_cell(id, value)]
@@ -171,33 +169,33 @@ class Puzzle:
     def solve(self):
         solver = solvers.Glucose3()
         for id in self.all_possible_values:
-            clause = self.cell_has_assigned_value(id);
-            solver.add_clause(clause)
-        for id in self.all_possible_values:
-            for clause in self.cell_is_unique(id):
-                solver.add_clause(clause)
+            # every cell must be not empty
+            solver.add_clause(self.cell_is_not_empty(id))
 
-        for id1, id2 in itertools.product(self.all_possible_values, self.all_possible_values):
-            if id1 != id2:
-                for clause in self.cells_are_not_equal(id1, id2):
-                    solver.add_clause(clause)
-        for id in self.all_possible_values:
+            # every cell must be filled only once
+            solver.append_formula(self.cell_is_unique(id))
+
+            # every cell should have neighbor with value 1 greater than itself
             neighbors = self.get_neighbors_ids(id)
-            for clause in self.cells_neighbor_has_proceding_value(id, neighbors):
-                solver.add_clause(clause)
+            solver.append_formula(self.cell_neighbor_has_proceding_value(id, neighbors))
 
-        assumptions = []
-        for id in self.all_possible_values:
+            # every pair of cells should have different value
+            for id2 in self.all_possible_values:
+                if id != id2:
+                    solver.append_formula(self.cells_are_not_equal(id, id2))
+
+            # pass cell value if it is filled with number
             cell_value = self.get_cell_value(id)
             if cell_value != 0:
-                assumptions.append(self.encode_cell(id, cell_value))
-        
-        print('Solvable?', solver.solve(assumptions))
+                solver.add_clause(self.cell_is_equal_to(id, cell_value))
+
+        print('Solvable?', solver.solve())
         model = solver.get_model()
         solver.delete()
 
         result = []
         for encoded_cell_value in model:
+            # take only filled cells
             if encoded_cell_value > 0:
                 result.append(self.decode_cell(encoded_cell_value))
 
@@ -206,7 +204,7 @@ class Puzzle:
 
 
 if __name__ == '__main__':
-    input = read_board('input.txt')
+    input = read_board('input4.txt')
     puzzle = Puzzle(input)
     print('Input board')
     print(puzzle.format_result(puzzle.board))

@@ -22,11 +22,11 @@ def test_neighbor():
     assert_conntent_equal(p.get_neighbors_ids(4), [2, 3])
 
 
-def test_assigned_value():
-    assert_conntent_equal(p.cell_has_assigned_value(1), [1, 2, 3, 4])
-    assert_conntent_equal(p.cell_has_assigned_value(2), [5, 6, 7, 8])
-    assert_conntent_equal(p.cell_has_assigned_value(3), [9, 10, 11, 12])
-    assert_conntent_equal(p.cell_has_assigned_value(4), [13, 14, 15, 16])
+def test_cell_is_empty():
+    assert_conntent_equal(p.cell_is_not_empty(1), [1, 2, 3, 4])
+    assert_conntent_equal(p.cell_is_not_empty(2), [5, 6, 7, 8])
+    assert_conntent_equal(p.cell_is_not_empty(3), [9, 10, 11, 12])
+    assert_conntent_equal(p.cell_is_not_empty(4), [13, 14, 15, 16])
 
 def test_equal_to():
     assert_conntent_equal(p.cell_is_equal_to(1, 1), [1])
