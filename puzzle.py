@@ -64,7 +64,7 @@ class Puzzle:
 
     def encode_cell(self, id, value):
         '''
-        every cell and value associated with it can be represented by a range of numbers
+        Every cell and value associated with it can be represented by a range of numbers
         for example:
         if cell with index (id) 1 is filled with number 1
         we encode that into 1, because: (1 - 1) * n + 1
@@ -107,13 +107,12 @@ class Puzzle:
     def cell_is_unique(self, id):
         cnf = []
         for value1 in range(1, self.n):
-            for value2 in range(1, self.n):
+            for value2 in range(value1 + 1, self.n + 1):
                 # one cell cannot have two values at once
-                if value1 != value2:
-                    cnf.append([
-                        -self.encode_cell(id, value1),
-                        -self.encode_cell(id, value2)
-                    ])
+                cnf.append([
+                    -self.encode_cell(id, value1),
+                    -self.encode_cell(id, value2)
+                ])
 
         return cnf
 
@@ -140,11 +139,9 @@ class Puzzle:
 
     def get_neighbors_ids(self, id):
         def in_same_row(id1, id2):
-            res = (id1 - 1) // self.rows == (id2 - 1) // self.rows
-            return res
+            return (id1 - 1) // self.rows == (id2 - 1) // self.rows
         def in_same_col(id1, id2):
-            res = id1 % self.rows == id2 % self.rows
-            return res
+            return id1 % self.rows == id2 % self.rows
 
         neighbors = []
         potential_neighbors = [id - 1, id + 1, id - self.rows, id + self.rows]
