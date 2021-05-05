@@ -203,6 +203,7 @@ class Puzzle:
 if __name__ == '__main__':
     input = read_board('input4.txt')
     puzzle = Puzzle(input)
+
     print('Input board')
     print(puzzle.format_result(puzzle.board))
     result = puzzle.solve()
