@@ -19,6 +19,10 @@ class Board():
             self.valid = False
         else:
             tk.messagebox.showinfo(title="Info", message="Wybrana plansza posiada wymiary {} x {}".format(int(self._board_size), int(self._board_size)))
+
+        if self.valid is True:
+            self.puzzle = Puzzle(self.board)
+            self.solved_puzzle = self.puzzle.solve()
         
     def get_board_size(self):
         return int(self._board_size)
@@ -26,11 +30,14 @@ class Board():
 
 class NumbrixBoard(tk.Canvas):
     def __init__(self):
+        self.values = []
+        self.user_inputs = []
         self.width = 400
         self.height = 400
         super().__init__(width=self.width, height=self.height, background="lightgrey", highlightthickness=0)
 
     def draw_board(self, board : Board):
+        self.inputs_ID = []
         board_size = board.get_board_size()
         rect_size = self.width / board_size
         it = 0
@@ -38,28 +45,39 @@ class NumbrixBoard(tk.Canvas):
             for x in range(0, board_size):
                 rect_value = board.board[it][1]
                 if rect_value != 0:
-                    self.create_rectangle(x * rect_size, y * rect_size, 
-                                          x * rect_size + rect_size, 
-                                          y * rect_size + rect_size, 
+                    self.user_inputs.append(tk.StringVar(self, str(rect_value), '{}_{}'.format(x, y)))
+                    self.create_rectangle(x * rect_size,
+                                          y * rect_size, 
+                                          x * rect_size + rect_size - 1, 
+                                          y * rect_size + rect_size - 1, 
                                           fill="lightblue", 
                                           outline="black")
                 else:
+                    self.user_inputs.append(tk.StringVar(self, "", '{}_{}'.format(x, y)))
+                    textentry = tk.Entry(self, font=14, justify=tk.CENTER, bg="lightgrey", bd=1, textvariable=self.user_inputs[it])
+                    id = self.create_window(x * rect_size, 
+                                       y * rect_size,
+                                       anchor=tk.NW,
+                                       width=rect_size,
+                                       height=rect_size,
+                                       window=textentry,
+                                       state=tk.HIDDEN)
                     self.create_rectangle(x * rect_size, 
                                           y * rect_size, 
                                           x * rect_size + rect_size, 
                                           y * rect_size + rect_size, 
                                           fill="darkgrey", 
                                           outline="black")
+                    self.inputs_ID.append(id)
                 it+=1
 
     def draw_text(self, board : Board):
         board_size = board.get_board_size()
         rect_size = self.width / board_size
 
-        value = 1;
+        value = 1
         print((board_size*board_size))
         while value < (board_size*board_size)+1:
-            print (value)
             it = 0
             for y in range(0, board_size):
                 for x in range(0, board_size):
@@ -92,52 +110,79 @@ class NumbrixBoard(tk.Canvas):
                 it+=1
 
 
-
 class Menubar(tk.Menu):
     def __init__(self, win: tk.Tk):
         super().__init__(win)
 
         self.filemenu = tk.Menu(self, tearoff=0)
-        self.filemenu.add_command(label="Otwórz planszę...", command=lambda: self.select_file(win))
+        self.filemenu.add_command(label="Otwórz plik z łamigłówką...", command=lambda: self.select_file(win))
         self.filemenu.add_separator()
         self.filemenu.add_command(label="Wyjście", command=lambda: self.close_app(win))
         self.add_cascade(label="Plik", menu=self.filemenu)
 
         self.solvemenu = tk.Menu(self, tearoff=0)
-        self.solvemenu.add_command(label="Rozwiąż wybraną planszę", command=lambda: self.resolve(win))
+        self.solvemenu.add_command(label="Rozwiąż wybraną łamigłówkę", command=lambda: self.resolve(win))
+        self.solvemenu.add_command(label="Sprawdź poprawność rozwiązania łamigłówki", command=lambda: self.check_solution(win))
+        self.solvemenu.add_separator()
+        self.solvemenu.add_command(label="Uruchom opcję rozgrywki", command=lambda: self.enable_user_gameplay(win))
         self.add_cascade(label="Rozwiązanie", menu=self.solvemenu)
 
         self.numbrix = None
+
+    def enable_user_gameplay(self, win: tk.Tk):
+        if self.numbrix == None:
+            return
+        else:
+            for input_ID in self.numbrix.inputs_ID:
+                self.numbrix.itemconfigure(input_ID, state=tk.NORMAL)
 
     def select_file(self, win: tk.Tk):
         self.filename = tk.filedialog.askopenfilename(initialdir="C:\\", 
                                                       title="Wybierz plik", 
                                                       filetypes = (("Pliki tekstowe", "*.txt*"), ("Wszystkie pliki", "*.*")))
         try:
-            board = Board(self.filename)
+            self.board = Board(self.filename)
 
-            if not board.valid:
+            if not self.board.valid:
                 return
 
             if self.numbrix == None:
                 self.numbrix = NumbrixBoard()
                 self.numbrix.pack()
-                self.numbrix.draw_board(board)
-                self.numbrix.draw_text2(board)
+                self.numbrix.draw_board(self.board)
+                self.numbrix.draw_text2(self.board)
             else:
-                self.numbrix.draw_board(board)
-                self.numbrix.draw_text2(board)
+                self.numbrix.delete("all")
+                self.numbrix.draw_board(self.board)
+                self.numbrix.draw_text2(self.board)
+
+            ''' PRINTING DATA FROM USER INPUTS 
+            inputs = [s.get() for s in self.numbrix.user_inputs]
+            print(inputs)
+            '''
         except FileNotFoundError:
             print("Użytkownik anulował operację")
 
     def close_app(self, win: tk.Tk):
         win.destroy()
 
+    def check_solution(self, win: tk.Tk):
+        ''' PRINT SOLVED PUZZLE AND USER INPUTS - CHECK EQUALITY
+        print([int(s.get()) for s in self.numbrix.user_inputs])
+        print([s[1] for s in self.board.solved_puzzle])
+        '''
+        try:
+            if [int(s.get()) for s in self.numbrix.user_inputs] == [s[1] for s in self.board.solved_puzzle]:
+                tk.messagebox.showinfo(title="Info", message="Brawo! Rozwiązałeś łamigłówkę!")
+        except ValueError:
+            tk.messagebox.showinfo(title="Info", message="Niestety Twoje rozwiązanie nie jest poprawne :(")
+            return
+
+
     def resolve(self, win: tk.Tk ):
         board = Board(self.filename)
         puzzle = Puzzle(board.board)
         board.board = puzzle.solve()
-
 
         if self.numbrix == None:
             self.numbrix = NumbrixBoard()
