@@ -36,6 +36,9 @@ class NumbrixBoard(tk.Canvas):
         self.height = 400
         super().__init__(width=self.width, height=self.height, background="lightgrey", highlightthickness=0)
 
+    def clear_user_inputs(self):
+        self.user_inputs.clear()
+
     def draw_board(self, board : Board):
         self.inputs_ID = []
         board_size = board.get_board_size()
@@ -152,6 +155,7 @@ class Menubar(tk.Menu):
                 self.numbrix.draw_board(self.board)
                 self.numbrix.draw_text2(self.board)
             else:
+                self.numbrix.clear_user_inputs()
                 self.numbrix.delete("all")
                 self.numbrix.draw_board(self.board)
                 self.numbrix.draw_text2(self.board)
