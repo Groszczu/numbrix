@@ -174,6 +174,8 @@ class Menubar(tk.Menu):
         try:
             if [int(s.get()) for s in self.numbrix.user_inputs] == [s[1] for s in self.board.solved_puzzle]:
                 tk.messagebox.showinfo(title="Info", message="Brawo! Rozwiązałeś łamigłówkę!")
+            else:
+                tk.messagebox.showinfo(title="Info", message="Niestety Twoje rozwiązanie nie jest poprawne :(")
         except ValueError:
             tk.messagebox.showinfo(title="Info", message="Niestety Twoje rozwiązanie nie jest poprawne :(")
             return
