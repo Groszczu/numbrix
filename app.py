@@ -43,22 +43,21 @@ class Board():
         return self.__solved_puzzle
 
 
-
 class NumbrixBoard(tk.Canvas):
     def __init__(self):
-        self.width = 400
-        self.height = 400
-        super().__init__(width=self.width, height=self.height, background="lightgrey", highlightthickness=0)
+        self.__width = 400
+        self.__height = 400
+        super().__init__(width=self.__width, height=self.__height, background="lightgrey", highlightthickness=0)
 
     def draw_empty_board(self, size):
-        self.inputs_ID = []
-        self.user_inputs = []
-        rect_size = self.width / size
+        self.__inputs_IDs = []
+        self.__user_inputs = []
+        rect_size = self.__width / size
         it = 0
         for y in range(0, size):
             for x in range(0, size):
-                self.user_inputs.append(tk.StringVar(self, "", '{}_{}'.format(x, y)))
-                textentry = tk.Entry(self, font=14, justify=tk.CENTER, bg="lightgrey", bd=1, textvariable=self.user_inputs[it])
+                self.__user_inputs.append(tk.StringVar(self, "", '{}_{}'.format(x, y)))
+                textentry = tk.Entry(self, font=14, justify=tk.CENTER, bg="lightgrey", bd=1, textvariable=self.__user_inputs[it])
                 id = self.create_window(x * rect_size, 
                                         y * rect_size,
                                         anchor=tk.NW,
@@ -72,20 +71,20 @@ class NumbrixBoard(tk.Canvas):
                                         y * rect_size + rect_size, 
                                         fill="darkgrey", 
                                         outline="black")
-                self.inputs_ID.append(id)
+                self.__inputs_IDs.append(id)
                 it+=1
 
     def draw_board(self, board : Board):
-        self.inputs_ID = []
-        self.user_inputs = []
+        self.__inputs_IDs = []
+        self.__user_inputs = []
         board_size = board.get_board_size()
-        rect_size = self.width / board_size
+        rect_size = self.__width / board_size
         it = 0
         for y in range(0, board_size):
             for x in range(0, board_size):
                 rect_value = board.get_unsolved_puzzle()[it][1]
                 if rect_value != 0:
-                    self.user_inputs.append(tk.StringVar(self, str(rect_value), '{}_{}'.format(x, y)))
+                    self.__user_inputs.append(tk.StringVar(self, str(rect_value), '{}_{}'.format(x, y)))
                     self.create_rectangle(x * rect_size,
                                           y * rect_size, 
                                           x * rect_size + rect_size - 1, 
@@ -93,8 +92,8 @@ class NumbrixBoard(tk.Canvas):
                                           fill="lightblue", 
                                           outline="black")
                 else:
-                    self.user_inputs.append(tk.StringVar(self, "", '{}_{}'.format(x, y)))
-                    textentry = tk.Entry(self, font=14, justify=tk.CENTER, bg="lightgrey", bd=1, textvariable=self.user_inputs[it])
+                    self.__user_inputs.append(tk.StringVar(self, "", '{}_{}'.format(x, y)))
+                    textentry = tk.Entry(self, font=14, justify=tk.CENTER, bg="lightgrey", bd=1, textvariable=self.__user_inputs[it])
                     id = self.create_window(x * rect_size, 
                                             y * rect_size,
                                             anchor=tk.NW,
@@ -108,12 +107,12 @@ class NumbrixBoard(tk.Canvas):
                                           y * rect_size + rect_size, 
                                           fill="darkgrey", 
                                           outline="black")
-                    self.inputs_ID.append(id)
+                    self.__inputs_IDs.append(id)
                 it+=1
 
     def draw_solution(self, board : Board):
         board_size = board.get_board_size()
-        rect_size = self.width / board_size
+        rect_size = self.__width / board_size
 
         value = 1
         print((board_size*board_size))
@@ -139,7 +138,7 @@ class NumbrixBoard(tk.Canvas):
 
     def draw_text(self, board : Board):
         board_size = board.get_board_size()
-        rect_size = self.width / board_size
+        rect_size = self.__width / board_size
 
         it = 0
         for y in range(0, board_size):
@@ -149,138 +148,134 @@ class NumbrixBoard(tk.Canvas):
                     self.create_text(x * rect_size + rect_size / 2,
                                      y * rect_size + rect_size / 2, text=rect_value)
                 it+=1
+    
+    def get_user_inputs(self):
+        return self.__user_inputs
 
-
-class PopupWindow(object):
-    def __init__(self, win: tk.Tk):
-        self.top=Toplevel(win)
-        self.l=Label(self.top,text="Hello World")
-        self.l.pack()
-        self.e=Entry(self.top)
-        self.e.pack()
-        self.b=Button(self.top,text='Ok', command=self.cleanup)
-        self.b.pack()
-
-    def cleanup(self):
-        self.value=self.e.get()
-        self.top.destroy()
+    def get_inputs_IDs(self):
+        return self.__inputs_IDs
 
 
 class Menubar(tk.Menu):
     def __init__(self, win: tk.Tk):
         super().__init__(win)
         # Set parent window for menubar
-        self.win = win
+        self.__win = win
         # Create file menu
-        self.filemenu = tk.Menu(self, tearoff=0)
-        self.filemenu.add_command(label="Otwórz plik z łamigłówką...", command=lambda: self.select_file(win))
-        self.filemenu.add_separator()
-        self.filemenu.add_command(label="Wyjście", command=lambda: self.close_app(win))
-        self.add_cascade(label="Plik", menu=self.filemenu)
+        self.__filemenu = tk.Menu(self, tearoff=0)
+        self.__filemenu.add_command(label="Otwórz plik z łamigłówką...", command=lambda: self.select_file())
+        self.__filemenu.add_separator()
+        self.__filemenu.add_command(label="Wyjście", command=lambda: self.close_app())
+        self.add_cascade(label="Plik", menu=self.__filemenu)
         # Create solve menu
-        self.solvemenu = tk.Menu(self, tearoff=0)
-        self.solvemenu.add_command(label="Rozwiąż wybraną łamigłówkę", command=lambda: self.resolve())
-        self.solvemenu.add_command(label="Sprawdź poprawność rozwiązania łamigłówki", command=lambda: self.check_solution())
-        self.solvemenu.add_separator()
-        self.solvemenu.add_command(label="Uruchom opcję rozgrywki", command=lambda: self.enable_user_gameplay())
-        self.add_cascade(label="Rozwiązanie", menu=self.solvemenu)
+        self.__solvemenu = tk.Menu(self, tearoff=0)
+        self.__solvemenu.add_command(label="Rozwiąż wybraną łamigłówkę", command=lambda: self.resolve())
+        self.__solvemenu.add_command(label="Sprawdź poprawność rozwiązania łamigłówki", command=lambda: self.check_solution())
+        self.__solvemenu.add_separator()
+        self.__solvemenu.add_command(label="Uruchom opcję rozgrywki", command=lambda: self.enable_user_gameplay())
+        self.add_cascade(label="Rozwiązanie", menu=self.__solvemenu)
         # Create user's puzzle menu
-        self.myownpuzzlemenu = tk.Menu(self, tearoff=0)
-        self.myownpuzzlemenu.add_command(label="Stwórz własną łamigłówkę", command=lambda: self.popup())
-        self.myownpuzzlemenu.add_command(label="Sprawdź rozwiązywalność", command=lambda: self.check_solvability())
-        self.myownpuzzlemenu.add_command(label="Rozwiąż własną łamigłówkę", command=lambda: self.solve_my_own_puzzle())
-        self.add_cascade(label="Własna łamigłówka", menu=self.myownpuzzlemenu)
+        self.__myownpuzzlemenu = tk.Menu(self, tearoff=0)
+        self.__myownpuzzlemenu.add_command(label="Stwórz własną łamigłówkę", command=lambda: self.popup())
+        self.__myownpuzzlemenu.add_command(label="Sprawdź rozwiązywalność", command=lambda: self.is_your_puzzle_solvable())
+        self.__myownpuzzlemenu.add_command(label="Rozwiąż własną łamigłówkę", command=lambda: self.solve_my_own_puzzle())
+        self.add_cascade(label="Własna łamigłówka", menu=self.__myownpuzzlemenu)
         # Set default values for numbrix board, user's board size and gameplay mode
-        self.board = None
-        self.numbrix = None
-        self.my_own_puzzle_size = 0
-        self.gameplay_mode = 0
+        self.__board = None
+        self.__numbrix = None
+        self.__my_own_puzzle_size = 0
+        self.__gameplay_mode = 0
 
     def popup(self):
-        self.popup_win = tk.Toplevel(self.win)
-        self.popup_win.wm_title("Podaj rozmiary planszy")
-        new_board_size = tk.Entry(self.popup_win, text="Wpisz rozmiar...")
+        self.__popup_win = tk.Toplevel(self.__win)
+        self.__popup_win.wm_title("Podaj rozmiary planszy")
+        new_board_size = tk.Entry(self.__popup_win, text="Wpisz rozmiar...")
         new_board_size.grid(row=0, column=0)
-        apply_button = tk.Button(self.popup_win, text="Zatwierdź", command=lambda: self.close_popup(win, new_board_size))
+        apply_button = tk.Button(self.__popup_win, text="Zatwierdź", command=lambda: self.close_popup(win, new_board_size))
         apply_button.grid(row=1, column=0)
 
     def close_popup(self, popup_win, new_board_size):
         try:
-            self.my_own_puzzle_size = int(new_board_size.get())
+            self.__my_own_puzzle_size = int(new_board_size.get())
         except:
-            print("ERROR")
+            print("Podana wartość nie jest wartością całkowitą")
             return
 
-        self.popup_win.destroy()
-        if self.numbrix == None:
-            self.numbrix = NumbrixBoard()
-            self.numbrix.pack()
-            self.numbrix.draw_empty_board(self.my_own_puzzle_size)
-        else:
-            self.numbrix.draw_empty_board(self.my_own_puzzle_size)
+        self.__popup_win.destroy()
+        if self.__numbrix == None:
+            self.__numbrix = NumbrixBoard()
+            self.__numbrix.pack()
+        self.__numbrix.draw_empty_board(self.__my_own_puzzle_size)
 
-    def check_solvability(self):
-        if self.my_own_puzzle_size != 0:
+    def is_your_puzzle_solvable(self):
+        if self.__my_own_puzzle_size != 0:
             int_inputs = []
-            for it in range(0, len(self.numbrix.user_inputs)):
-                if self.numbrix.user_inputs[it].get() == "":
+            for it in range(0, len(self.__numbrix.get_user_inputs())):
+                if self.__numbrix.get_user_inputs()[it].get() == "":
                     int_inputs.append((it + 1, 0))
                 else:
-                    int_inputs.append((it + 1, int(self.numbrix.user_inputs[it].get())))
-            
-            self.board = Board(int_inputs)
+                    int_inputs.append((it + 1, int(self.__numbrix.get_user_inputs()[it].get())))
             try:
-                if self.board.is_puzzle_solvable() is True:
+                self.__board = Board(int_inputs)
+                if self.__board.is_puzzle_solvable() is True:
                     tk.messagebox.showinfo(title="Info", message="Wpisana przez Ciebie łamigłówka jest rozwiązywalna!")
+                    return 1
             except TypeError:
                 tk.messagebox.showinfo(title="Info", message="Wpisana przez Ciebie łamigłówka nie jest rozwiązywalna :(")
+                return 0
+        else:
+            print("Nie można sprawdzić rozwiązywalności łamigłówki, która nie istnieje")
 
     def solve_my_own_puzzle(self):
-        self.check_solvability()
-        self.numbrix.draw_text(self.board)
-        self.disable_user_gameplay()
-        self.resolve()
+        if self.__my_own_puzzle_size != 0:
+            if self.is_your_puzzle_solvable() == 1:
+                self.__numbrix.draw_text(self.__board)
+                self.disable_user_gameplay()
+                self.resolve()
+        else:
+            print("Nie stworzono łamigłówki")
 
     def entryValue(self):
-        return self.my_own_puzzle_size
+        return self.__my_own_puzzle_size
 
     def enable_user_gameplay(self):
-        if self.numbrix == None:
+        if self.__numbrix == None:
             print("Nie wybrano planszy")
             return
-        elif self.numbrix != None and self.my_own_puzzle_size == 0:
-            for input_ID in self.numbrix.inputs_ID:
-                self.numbrix.itemconfigure(input_ID, state=tk.NORMAL)
-            self.gameplay_mode = 1
+        elif self.__numbrix != None and self.__my_own_puzzle_size == 0:
+            for input_ID in self.__numbrix.get_inputs_IDs():
+                self.__numbrix.itemconfigure(input_ID, state=tk.NORMAL)
+            self.__gameplay_mode = 1
 
     def disable_user_gameplay(self):
-        if self.numbrix == None:
+        if self.__numbrix == None:
             return
-        elif self.numbrix != None and self.my_own_puzzle_size != 0:
-            for input_ID in self.numbrix.inputs_ID:
-                self.numbrix.itemconfigure(input_ID, state=tk.HIDDEN)
-            self.gameplay_mode = 0
+        elif self.__numbrix != None:
+            for input_ID in self.__numbrix.get_inputs_IDs():
+                self.__numbrix.itemconfigure(input_ID, state=tk.HIDDEN)
+            self.__gameplay_mode = 0
 
-    def select_file(self, win: tk.Tk):
+    def select_file(self):
+        self.__my_own_puzzle_size = 0
         filename = tk.filedialog.askopenfilename(initialdir="C:\\", 
                                                  title="Wybierz plik", 
                                                  filetypes = (("Pliki tekstowe", "*.txt*"), ("Wszystkie pliki", "*.*")))
         try:
-            self.board = Board(read_board(filename))
+            self.__board = Board(read_board(filename))
 
-            if not self.board.is_board_valid() or not self.board.is_puzzle_solvable():
+            if not self.__board.is_board_valid() or not self.__board.is_puzzle_solvable():
                 print("Wybrana plansza nie posiada poprawnych rozmiarów lub jest nierozwiązywalna")
                 return
 
-            if self.numbrix == None:
-                self.numbrix = NumbrixBoard()
-                self.numbrix.pack()
-                self.numbrix.draw_board(self.board)
-                self.numbrix.draw_text(self.board)
+            if self.__numbrix == None:
+                self.__numbrix = NumbrixBoard()
+                self.__numbrix.pack()
+                self.__numbrix.draw_board(self.__board)
+                self.__numbrix.draw_text(self.__board)
             else:
-                self.numbrix.delete("all")
-                self.numbrix.draw_board(self.board)
-                self.numbrix.draw_text(self.board)
+                self.__numbrix.delete("all")
+                self.__numbrix.draw_board(self.__board)
+                self.__numbrix.draw_text(self.__board)
 
             ''' PRINTING DATA FROM USER INPUTS 
             inputs = [s.get() for s in self.numbrix.user_inputs]
@@ -289,23 +284,23 @@ class Menubar(tk.Menu):
         except FileNotFoundError:
             print("Użytkownik anulował operację")
 
-    def close_app(self, win: tk.Tk):
-        win.destroy()
+    def close_app(self):
+        self.__win.destroy()
 
     def check_solution(self):
         ''' PRINT SOLVED PUZZLE AND USER INPUTS - CHECK EQUALITY
         print([int(s.get()) for s in self.numbrix.user_inputs])
         print([s[1] for s in self.board.solved_puzzle])
         '''
-        if self.numbrix == None:
+        if self.__numbrix == None:
             print("Nie wybrano planszy")
             return
-        elif self.gameplay_mode == 0:
+        elif self.__gameplay_mode == 0:
             print("Nie włączono trybu rozgrywki")
             return 
 
         try:
-            if [int(s.get()) for s in self.numbrix.user_inputs] == [s[1] for s in self.board.get_solved_puzzle()]:
+            if [int(s.get()) for s in self.__numbrix.get_user_inputs()] == [s[1] for s in self.__board.get_solved_puzzle()]:
                 tk.messagebox.showinfo(title="Info", message="Brawo! Rozwiązałeś łamigłówkę!")
             else:
                 tk.messagebox.showinfo(title="Info", message="Niestety Twoje rozwiązanie nie jest poprawne :(")
@@ -314,19 +309,22 @@ class Menubar(tk.Menu):
             return
 
     def resolve(self):
-        if not self.board:
+        if not self.__board:
             print("Nie wybrano planszy do rozwiązania")
             return
-        else:
-            if self.gameplay_mode == 1:
+        elif self.__my_own_puzzle_size == 0:
+            if self.__gameplay_mode == 1:
                 self.disable_user_gameplay()
 
-            if self.numbrix == None and self.board.is_board_valid == True and self.board.is_puzzle_solvable == True:
-                self.numbrix = NumbrixBoard()
-                self.numbrix.pack()
-                self.numbrix.draw_solution(self.board)
-            else:
-                self.numbrix.draw_solution(self.board)
+            if self.__board.is_board_valid() == True and self.__board.is_puzzle_solvable() == True:
+                if self.__numbrix == None:
+                    self.__numbrix = NumbrixBoard()
+                    self.__numbrix.pack()
+                    self.__numbrix.draw_solution(self.__board)
+                else:
+                    self.__numbrix.draw_solution(self.__board)
+        else:
+            print("Brak wczytanej planszy do rozwiązania")
 
 
 if __name__ == "__main__":
