@@ -18,7 +18,7 @@ class Board():
             tk.messagebox.showwarning(title="Błąd", message="Wybrany plik nie posiada planszy o poprawnym rozmiarze")
             self.__valid_size = False
         else:
-            tk.messagebox.showinfo(title="Info", message="Wybrana plansza posiada wymiary {} x {}".format(int(self.__board_size), int(self.__board_size)))
+            tk.messagebox.showinfo(title="Info", message="Plansza posiada wymiary {} x {}".format(int(self.__board_size), int(self.__board_size)))
             self.__valid_size = True
 
         if self.__valid_size is True:
@@ -228,16 +228,18 @@ class Menubar(tk.Menu):
                 else:
                     int_inputs.append((it + 1, int(self.numbrix.user_inputs[it].get())))
             
-            puzzle = Puzzle(int_inputs)
+            self.board = Board(int_inputs)
             try:
-                if puzzle.solve()[1] is True:
+                if self.board.is_puzzle_solvable() is True:
                     tk.messagebox.showinfo(title="Info", message="Wpisana przez Ciebie łamigłówka jest rozwiązywalna!")
             except TypeError:
                 tk.messagebox.showinfo(title="Info", message="Wpisana przez Ciebie łamigłówka nie jest rozwiązywalna :(")
 
     def solve_my_own_puzzle(self):
-        # TODO: Solve puzzle made by user
-        pass
+        self.check_solvability()
+        self.numbrix.draw_text(self.board)
+        self.disable_user_gameplay()
+        self.resolve()
 
     def entryValue(self):
         return self.my_own_puzzle_size
