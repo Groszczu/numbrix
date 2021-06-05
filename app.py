@@ -261,28 +261,33 @@ class Menubar(tk.Menu):
                                                  title="Wybierz plik", 
                                                  filetypes = (("Pliki tekstowe", "*.txt*"), ("Wszystkie pliki", "*.*")))
         try:
-            self.__board = Board(read_board(filename))
-
-            if not self.__board.is_board_valid() or not self.__board.is_puzzle_solvable():
-                print("Wybrana plansza nie posiada poprawnych rozmiarów lub jest nierozwiązywalna")
+            try:
+                self.__board = Board(read_board(filename))
+            except TypeError:
+                tk.messagebox.showwarning(title="Błąd", message="Wybrany plik nie posiada planszy, która może być rozwiązana")
                 return
+        except FileNotFoundError:
+            print("Użytkownik anulował operację")
+            return
 
-            if self.__numbrix == None:
-                self.__numbrix = NumbrixBoard()
-                self.__numbrix.pack()
-                self.__numbrix.draw_board(self.__board)
-                self.__numbrix.draw_text(self.__board)
-            else:
-                self.__numbrix.delete("all")
-                self.__numbrix.draw_board(self.__board)
-                self.__numbrix.draw_text(self.__board)
+        if not self.__board.is_board_valid() or not self.__board.is_puzzle_solvable():
+            print("Wybrana plansza nie posiada poprawnych rozmiarów lub jest nierozwiązywalna")
+            return
+
+        if self.__numbrix == None:
+            self.__numbrix = NumbrixBoard()
+            self.__numbrix.pack()
+            self.__numbrix.draw_board(self.__board)
+            self.__numbrix.draw_text(self.__board)
+        else:
+            self.__numbrix.delete("all")
+            self.__numbrix.draw_board(self.__board)
+            self.__numbrix.draw_text(self.__board)
 
             ''' PRINTING DATA FROM USER INPUTS 
             inputs = [s.get() for s in self.numbrix.user_inputs]
             print(inputs)
             '''
-        except FileNotFoundError:
-            print("Użytkownik anulował operację")
 
     def close_app(self):
         self.__win.destroy()
@@ -312,7 +317,7 @@ class Menubar(tk.Menu):
         if not self.__board:
             print("Nie wybrano planszy do rozwiązania")
             return
-        elif self.__my_own_puzzle_size == 0:
+        else:
             if self.__gameplay_mode == 1:
                 self.disable_user_gameplay()
 
@@ -323,8 +328,6 @@ class Menubar(tk.Menu):
                     self.__numbrix.draw_solution(self.__board)
                 else:
                     self.__numbrix.draw_solution(self.__board)
-        else:
-            print("Brak wczytanej planszy do rozwiązania")
 
 
 if __name__ == "__main__":

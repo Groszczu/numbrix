@@ -207,6 +207,6 @@ if __name__ == '__main__':
 
     print('Input board')
     print(puzzle.format_result(puzzle.board))
-    result = puzzle.solve()
+    result = puzzle.solve()[0]
     print('Result board')
     print(puzzle.format_result(result))
