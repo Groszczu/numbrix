@@ -186,7 +186,8 @@ class Puzzle:
             if cell_value != 0:
                 solver.add_clause(self.cell_is_equal_to(id, cell_value))
 
-        print('Solvable?', solver.solve())
+        is_solvable = solver.solve()
+        print('Solvable?', is_solvable)
         model = solver.get_model()
         solver.delete()
 
@@ -196,7 +197,7 @@ class Puzzle:
             if encoded_cell_value > 0:
                 result.append(self.decode_cell(encoded_cell_value))
 
-        return result
+        return result, is_solvable
 
 
 
@@ -206,6 +207,6 @@ if __name__ == '__main__':
 
     print('Input board')
     print(puzzle.format_result(puzzle.board))
-    result = puzzle.solve()
+    result = puzzle.solve()[0]
     print('Result board')
     print(puzzle.format_result(result))
